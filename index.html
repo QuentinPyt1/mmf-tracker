@@ -346,6 +346,19 @@ function loadState(){
           if(!yr.salaire) yr.salaire = Array(12).fill(null);
         });
       }
+      // PE cleanup : purge des dépôts fantômes (one-time, force resync depuis SEED)
+      if(!s._peCleanV || s._peCleanV < 1){
+        const sourcePE = (SEED.accounts||[]).find(a=>a.type==='pe' || a.name==='Private Equity');
+        const userPE = (s.accounts||[]).find(a=>a.type==='pe' || a.name==='Private Equity');
+        if(sourcePE && userPE){
+          userPE.deposits = (sourcePE.deposits||[]).map(d=>({...d}));
+          userPE.invested = sourcePE.invested;
+          userPE.current = sourcePE.current;
+          userPE.pnl = sourcePE.pnl;
+          userPE.snapshots = sourcePE.current!=null?[{date:new Date().toISOString().slice(0,10), value:Number(sourcePE.current)||0}]:[];
+        }
+        s._peCleanV = 1;
+      }
       return s;
     }
   }catch(e){}
